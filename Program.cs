@@ -1,78 +1,59 @@
 ﻿using System;
-using DatosCharacter;
-using Caractcharacter;
-using Personajes;
-static string RetornarNombre(string[][] personaje, int i){
-  Random Rnd = new Random();
-  int cantNom = personaje[i].Length;
-  string nom = "";
-  if(i == 0){
-    nom = personaje[i][Rnd.Next(0,cantNom)];
-  }
-  if(i == 1){
-    nom = personaje[i][Rnd.Next(0,cantNom)];
-  }
-  if(i == 2){
-    nom = personaje[i][Rnd.Next(0,cantNom)];
-  }
-  return nom;
-}
-static Personaje retornarDat(string[][]nombres){
-  Personaje pj = new Personaje();
-  Random r = new Random();
-  pj.Dat.Nombre = RetornarNombre(nombres,0);
-  pj.Dat.Tipo = RetornarNombre(nombres,1);
-  pj.Dat.Apodo = RetornarNombre(nombres,2);
-  pj.Dat.Edad = r.Next(1,100);
-  return pj;
-}
-static List<Personaje> retornarLista(string[][] nombres){
-  List<Personaje> person = new List<Personaje>();
-  for(int i = 0; i < 3; i++){
-    person.Add(new Personaje());
-    person[i] = retornarDat(nombres);
-  }
-  return person;
-}
-var nombres = new string[][]{
-  new string[]{"Pibe Libertario","Viejo Inimputable", "Victoria","Jubilado armado","Sindicalista","El Brayan", "Piquetero", "Gordo del mortero","Zurdo","Inflación","Politico", "Javier","Mabel","Isabel","Cristina","Carla",},
-  new string[]{"Francotirador","Ladrón","Cazarrecompensas","Embaucador","Salvaje","Ilusionista","Invocador","Sabio","Guerrero","Caballero","Mercenario","Ingeniero","Médium","Pistolero","Bombardero","Francotirador"},
-  new string[]{"El Sucio", "Chorro", "Chino", "Forro", "Pubertario","ChocoBoy","El justiciero","el Pepe","eL Chino","Dogor","Falopa","Pibe Cantina", "Cabez de termo","Milipili","Tranza","vieja macrista"}
-};
-Random r = new Random();
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using DatosPJApi;
+using infoPJ;
+using muchasFunciones;
 
-Personaje pj1 = retornarDat(nombres);
-List<Personaje> luchadores = retornarLista(nombres);
-int caraCruz = r.Next(0,2);
-for(int k = 0; k < luchadores.Count; k++){
-  System.Console.WriteLine("\t\tPelea {0}\n\t\t{1} VS {2}\n",k+1,pj1.Dat.Nombre,luchadores[k].Dat.Nombre);
-  for(int i = 0; i < 7; i++){
-    System.Console.WriteLine("\tTurno {0}\n", i+1);
-    if(pj1.Dat.Salud < 1){
-      break;
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        string personajesJSON = @"/home/alvaro/Documentos/Taller/Pruebas/newClass/personajes/personaje.json";
+        string ganaodoresJSON = @"/home/alvaro/Documentos/Taller/Pruebas/newClass/ganadores/ganadores.json";
+        ConsoleKeyInfo cki;
+        do{
+            int op = 0;
+            do{
+                System.Console.WriteLine("1) Luchar!\n2) Mostrar Ganadores");
+                op = Convert.ToInt32(Console.ReadLine());
+                cki = Console.ReadKey();
+                if(!(op == 1 || op == 2 )){
+                    System.Console.WriteLine("Opción incorrecta, vuelve a escribir una opción correcta!");
+                }
+                else{
+                    if(op == 1){
+                        Functions_Datos.CrearEnemigos();
+                        var listaGanadores = new List<DatosPJ>();
+                        if(File.Exists(ganaodoresJSON)){
+                            listaGanadores = Functions_Datos.DeserializarDatos(ganaodoresJSON);
+                            listaGanadores.Add(Functions_Fight.LuchaYCargarGanadores(Functions_Datos.CargarPJ(),Functions_Datos.DeserializarDatos(personajesJSON)));
+                        }else{
+                            listaGanadores.Add(Functions_Fight.LuchaYCargarGanadores(Functions_Datos.CargarPJ(),Functions_Datos.DeserializarDatos(personajesJSON)));
+                        }
+                        if(listaGanadores != null){
+                            Functions_Datos.EscribirEnJSON(listaGanadores,ganaodoresJSON);
+                        }
+                    }
+                
+                    if(op == 2){
+                        var mostrarGanadores = Functions_Datos.DeserializarDatos(ganaodoresJSON);
+                        if(mostrarGanadores.Count <= 0){
+                            System.Console.WriteLine("Aun no hay ganadores");
+                        }else{
+                            foreach(var pj in mostrarGanadores){
+                                Functions_Datos.MostarDatos(pj);
+                            }
+                        }
+                    }
+                    System.Console.WriteLine("Presione ENTER para continuar...");
+                }
+            }while(!(op == 1 || op == 2));
+            cki = Console.ReadKey();
+        }while(cki.Key != ConsoleKey.Escape);
     }
-    if(luchadores[k].Dat.Salud < 1){
-        luchadores.RemoveAt(k);
-        break;
-    }
-    if(caraCruz == 0){
-      System.Console.WriteLine("{0} ataca...",pj1.Dat.Nombre);
-      pj1.danioProvoado(luchadores[k]);
-      caraCruz = 1;
-    }else{
-      System.Console.WriteLine("{0} ataca...",luchadores[k].Dat.Nombre);
-      luchadores[k].danioProvoado(pj1);
-      caraCruz = 0;
-    }
-  }
-  if(pj1.Dat.Salud < luchadores[k].Dat.Salud){
-    System.Console.WriteLine("{0} derrotado, fin del juego.",pj1.Dat.Nombre);
-    break;
-  }else if(luchadores[k].Dat.Salud < pj1.Dat.Salud){
-    System.Console.WriteLine("{0} derrotado",luchadores[k].Dat.Nombre);
-    luchadores.RemoveAt(k);
-  }
-  System.Console.WriteLine("");
-  Console.ReadKey();
-  Console.Clear();
 }
