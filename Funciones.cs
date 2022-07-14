@@ -74,19 +74,19 @@ namespace muchasFunciones
             }
         }
         static public List<DatosPJ> DeserializarDatos(string path){
-            var miJSON = File.ReadAllText(path);
+            string miJSON = File.ReadAllText(path);
             var listaPJ = JsonSerializer.Deserialize<List<DatosPJ>>(miJSON);
             return listaPJ;
         }
         static public DatosPJ CargarPJ(){
             var pj = new DatosPJ(){
-            Data = Functions_Datos.CargarDatosPJ(),
-            Stats = Functions_Datos.CargarStatsPJ()
+                Data = Functions_Datos.CargarDatosPJ(),
+                Stats = Functions_Datos.CargarStatsPJ()
             };
             return pj;
         }
         static public void CrearEnemigos(){
-            string personajesJSON = @"/home/alvaro/Documentos/Taller/Pruebas/newClass/personajes/personaje.json";
+            string personajesJSON = @"/home/alvaro/Documentos/Taller/rpg-2022-SoriaAlvaro/personajes/personaje.json";
             var listaPJ = new List<DatosPJ>();
             /* if(File.Exists(personajesJSON) && listaPJ.Count < 5){
                 for(int i = 0; i < 5; i++){
@@ -123,22 +123,18 @@ namespace muchasFunciones
             Random r = new Random();
             return r.Next(0,2);
         }
-        static public DatosPJ LuchaYCargarGanadores(DatosPJ principal, List<DatosPJ> listaPJs){
+        static public bool Luchar(DatosPJ principal, List<DatosPJ> listaPJs){
             int turnos = 0;
-            bool ganador = true;
+            bool ganador = false;
             int moneda = Functions_Fight.TirarMoneda();
-            var r = new Random();
-            for(int key = 0; key < listaPJs.Count; key++){
-                System.Console.WriteLine("\nPelea {0}",key+1);
+            int total = listaPJs.Count;
+            int key = 0;
+            while(key < total){
+                System.Console.WriteLine("Pelea {0}",key+1);
                 while(turnos < 3){
                     System.Console.WriteLine("Turno {0}",turnos+1);
-                    if(principal.Stats.Salud < 0){
-                        ganador = false;
-                        break;
-                    }
-                    if(listaPJs[key].Stats.Salud < 0){
-                        listaPJs.RemoveAt(r.Next(0,listaPJs.Count));
-                        break;
+                    if(principal.Stats.Salud < 0 || listaPJs[key].Stats.Salud < 0){
+                        turnos = 3;
                     }
                     if(moneda == 0){
                         Functions_Fight.danioProvoado(principal, listaPJs[key]);
@@ -150,23 +146,16 @@ namespace muchasFunciones
                     turnos++;
                 }
                 if(principal.Stats.Salud < listaPJs[key].Stats.Salud){
-                    ganador = false;
-                    break;
+                    key = total;
                 }else{
-                    listaPJs.RemoveAt(r.Next(0,listaPJs.Count));
-                    principal.Stats.Salud = 1000;
+                    ganador = true;
+                    key++;
                 }
-                System.Console.WriteLine("Fin de la Pelea {0}\n",key+1);
             }
             if(ganador == true){
-                System.Console.WriteLine("Ganador! {0}",principal.Data.Nombre);
-                return principal;
-            }else{
-                System.Console.WriteLine("GAME OVER");
+                return true;
             }
-            string personajesJSON = @"/home/alvaro/Documentos/Taller/Pruebas/newClass/personajes/personaje.json";
-            Functions_Datos.EscribirEnJSON(listaPJs,personajesJSON);
-            return null;
+            return false;
         }
     }
 }
