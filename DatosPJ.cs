@@ -31,10 +31,12 @@ namespace infoPJ
 
 
     class DatosPJ {
+        int id = 0;
         private Data? data = new Data();
         private Stats stats = new Stats();
 
         public Data? Data { get => data; set => data = value; }
         public Stats Stats { get => stats; set => stats = value; }
+        public int Id { get => id; set => id = value; }
     }
 }
