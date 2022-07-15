@@ -26,7 +26,7 @@ internal class Program
             System.Console.WriteLine("Cargando...");
             //si el archivo no existe, lo crea y tambien evita que se
             // creen muchos personajes durante el ciclo, asi reduzco el tiempo de carga
-            // para las proximas peleas.
+            // para las proximas peleas
             if(File.Exists(personajesJSON) == false){
                 Functions_Datos.CrearEnemigos();
             }
